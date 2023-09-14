@@ -1,0 +1,14 @@
+# python cache
+__pycache__/
+
+# sequence and index files
+*.fasta
+*.cki
+
+# output images
+*.png
+
+# cache directories
+_tryptag_cache/
+_tritrypdb/
+_uniprot/

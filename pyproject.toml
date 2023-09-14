@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "afkost"
+version = "0.0.1"
+authors = [
+	{ name = "Richard Wheeler", email="richardwheeler@outlook.com" },
+]
+description = "Protein Alignment-free COmposition Search Tool"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+	"numpy",
+	"matplotlib",
+	"tqdm",
+    "requests",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/zephyris/afkost"
