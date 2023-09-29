@@ -1,5 +1,6 @@
 import subprocess
 import os
+from afkost import Fasta
 
 class Blast:
     def __init__(self, search_tool: str = "diamond", sequence_type: str = "protein"):
@@ -20,7 +21,8 @@ class Blast:
         self.sequence_type = sequence_type
         if self.sequence_type not in sequence_types:
             raise ValueError("`search_tool` must be " + " or ".join(sequence_types))
-    
+        self.minimum_evalue = "0.00001"
+
     def _check_install(self, verbose: bool = False):
         """
         Check if the necessary programs are installed, and thow an error if not.
@@ -42,10 +44,24 @@ class Blast:
         if verbose:
             print("'" + " ".join(command[self.search_tool]) + "' ran successfully, " + self.search_tool + " appears to be installed correctly")
 
-    def search(self, query_sequence, fasta_path, query_name: str = None):
+    def search(self, query_sequence: str, fasta_path: str):
+        """
+        Do a blast or diamond sequence search.
+
+        Required arguments:
+        query_sequence -- query as a string
+        fasta_path -- fasta file to use as a database to search against
+
+        Returns a list of hits, in the form [subject sequence name, evalue, subject sequence hit], and the additional list entry [full subject sequence hit] if using diamond
+        """
+        # TODO: Error handling from failure to run blasts
+        # check install
         self._check_install()
+        # setup query name, currently unused
+        query_name = None
         if query_name is None:
             query_name = "none"
+        # select search program name
         search_program = {
             "protein": "blastp",
             "nucleotide": "blastn"
@@ -55,18 +71,18 @@ class Blast:
             if not os.path.isfile(fasta_path + ".dmnd"):
                 command = ["diamond", "makedb", fasta_path]
                 proc = subprocess.Popen(command, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
-                result = proc.communicate()[0].decode("utf-8")
+                results = proc.communicate()[0].decode("utf-8")
                 #if proc.returncode != 0:
-                #    print(result)
+                #    print(results)
                 #    assert AssertionError("diamond database generation failed")
             # do the search
-            search_command = ["-d", fasta_path, "-e", "0.00001", "-q", "-", "--outfmt", "6", "sseqid", "evalue", "sseq"]
+            search_command = ["-d", fasta_path, "-e", self.minimum_evalue, "-q", "-", "--outfmt", "6", "sseqid", "evalue", "sseq", "full_sseq"]
             command = ["diamond", search_program[self.sequence_type]] + search_command
             proc = subprocess.Popen(command, stdout = subprocess.PIPE, stdin = subprocess.PIPE)
             proc.stdin.write((">%s\n%s" % (query_name, query_sequence)).encode('utf-8'))
-            result = proc.communicate()[0].decode("utf-8")
+            results = proc.communicate()[0].decode("utf-8")
             #if proc.returncode != 0:
-            #    print(result)
+            #    print(results)
             #    assert AssertionError("diamond search failed")
         if self.search_tool == "blast":
             # make the database
@@ -77,20 +93,78 @@ class Blast:
                 }
                 command = ["makeblastdb", "-dbtype", dbtype[self.sequence_type], "-in", fasta_path]
                 proc = subprocess.Popen(command, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
-                result = proc.communicate()[0].decode("utf-8")
+                results = proc.communicate()[0].decode("utf-8")
                 #if proc.returncode != 0:
-                #    print(result)
+                #    print(results)
                 #    assert AssertionError("blast database generation failed")
             # do the search
-            search_command = ["-db", fasta_path, "-evalue", "0.00001", "-query", "-", "-outfmt", "6 sseqid evalue sseq"]
+            search_command = ["-db", fasta_path, "-evalue", self.minimum_evalue, "-query", "-", "-outfmt", "6 sseqid evalue sseq"]
             command = [search_program[self.sequence_type]] + search_command
             proc = subprocess.Popen(command, stdout = subprocess.PIPE, stdin = subprocess.PIPE)
             proc.stdin.write((">%s\n%s" % (query_name, query_sequence)).encode('utf-8'))
-            result = proc.communicate()[0].decode("utf-8")
+            results = proc.communicate()[0].decode("utf-8")
             #if proc.returncode != 0:
-            #    print(result)
+            #    print(results)
             #    assert AssertionError("diamond search failed")
-            print(result)
-        result = result.splitlines()
-        result = [x.split("\t") for x in result]
-        return result
+        results = results.splitlines()
+        results = [x.split("\t") for x in results]
+        return results
+
+    def reciprocal_search(self, origin_fasta_path: str, subject_fasta_path: str, query_name: str = None, query_sequence: str = None, verbose: bool = False):
+        """
+        Do a reciprocal blast or diamond sequence search. Either `query_name` or `query_sequence` must be met.
+        Validity of `query_name` and `query_sequence` are NOT checked, ie. it is trusted that, if set, they exactly match an entry in the fasta file at `origin_fasta_path`.
+        Providing `query_name` and `query_sequence` is fasta, as it prevents additional lookup from the fasta file at `origin_fasta_path`.
+        Using diamond is faster than blast as it returns full subject sequence which can be used in the reciprocal search.
+
+        Required arguments:
+        origin_fasta_path -- fasta file to use as the originating database
+        subject_fasta_path -- fasta file to use as the target database
+
+        Named arguments:
+        query_sequence -- query as a string
+        query_name -- query name
+        verbose -- print additional information for when a reciprocal blast was not found
+    
+        Returns None if there is no reciprocal best hit, list in the form [query_name, evalue_forward, subject_name, evalue_reverse] if there is.
+        """
+        # check query
+        if query_name is None and query_sequence is None:
+            raise ValueError("Either `query_name` or `query_sequence` must be given as an argument")
+        # if necessary, look up query sequence
+        if query_sequence is None:
+            query_fasta = Fasta(origin_fasta_path)
+            if query_name not in query_fasta.sequences:
+                raise ValueError(query_name + " name not found in the fasta file at " + origin_fasta_path)
+            query_sequence = query_fasta.sequences[query_name]
+        # if necessary, look up query name
+        if query_name is None:
+            query_fasta = Fasta(origin_fasta_path)
+            for name in query_fasta.sequences:
+                if query_fasta.sequences[name] == query_sequence:
+                    query_name = name
+            if query_name is None:
+                raise ValueError(query_sequence + "sequence not found in the fasta file at " + origin_fasta_path)
+        # do the forward search, if no hits then return None
+        forward_result = self.search(query_sequence, subject_fasta_path)
+        if len(forward_result) == 0:
+            if verbose: print("no forward hits")
+            return None
+        # do the reverse search, if no hits then return None
+        forward_result = forward_result[0]
+        if len(forward_result) < 4:
+            # if index 3 not in result (blast only) then look up full subject sequence ID
+            subject_fasta = Fasta(subject_fasta_path)
+            forward_result.append(subject_fasta.sequences[forward_result[0]])
+        reverse_result = self.search(forward_result[3], origin_fasta_path)
+        if len(reverse_result) == 0:
+            if verbose: print("no reverse hits")
+            return None
+        # check for reciprocality
+        reverse_result = reverse_result[0]
+        if reverse_result[0] != query_name:
+            if verbose: print("no reciprocal match")
+            return None
+        else:
+            if verbose: print("reciprocal match")
+            return [query_name, forward_result[1], forward_result[0], forward_result[1]]
