@@ -33,6 +33,8 @@ marp = Sequence(tbrucei.sequences["Tb927.10.10360:mRNA-p1"])
 marp.plot(save_path="marp.tb")
 gapdh = Sequence(tbrucei.sequences["Tb927.6.4280:mRNA-p1"])
 gapdh.plot(save_path="gapdh.tb")
+drbd13 = Sequence(tbrucei.sequences["Tb927.8.6650:mRNA-p1"])
+drbd13.plot(save_path="drbd13.tb")
 
 from afkost import KmerMatrix
 matrix = KmerMatrix()
