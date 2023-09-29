@@ -10,5 +10,5 @@ __pycache__/
 
 # cache directories
 _tryptag_cache/
-_tritrypdb/
-_uniprot/
+_tritrypdb_cache/
+_uniprot_cache/

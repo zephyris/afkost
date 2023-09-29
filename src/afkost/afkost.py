@@ -165,7 +165,15 @@ class Fasta:
         """
         Sequence of the first entry in the fasta file, as a string
         """
-        return self.sequences[next(iter(self.sequences))]
+        #return self.sequences[next(iter(self.sequences))]
+        return self.sequences[list(self.sequences.keys())[0]]
+
+    @cached_property
+    def first_name(self):
+        """
+        Name of the first entry in the fasta file, as a sting
+        """
+        return list(self.sequences.keys())[0]
 
     @cached_property
     def count(self):

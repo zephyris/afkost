@@ -1,22 +1,11 @@
 import requests
 import os
-
-tritrypdb_species = {
-    "tbrucei": "TbruceiTREU927",
-    "lmexicana": "LmexicanaMHOMGT2001U1103"
-}
-
-for species in tritrypdb_species:
-    tritrypdb_version = str(65)
-    tritrypdb_url = "https://tritrypdb.org/common/downloads/release-" + tritrypdb_version + "/" + tritrypdb_species[species] + "/fasta/data/TriTrypDB-" + tritrypdb_version + "_" + tritrypdb_species[species] + "_AnnotatedProteins.fasta"
-    if not os.path.isfile(species + ".fasta"):
-        r = requests.get(tritrypdb_url)
-        with open(species + ".fasta", "w") as fasta_file:
-            fasta_file.write(r.text)
+from afkost import tritrypdb
 
 from afkost import Fasta
-tbrucei = Fasta("tbrucei.fasta")
-lmexicana = Fasta("lmexicana.fasta")
+tritrypdb = tritrypdb.TriTrypDB()
+tbrucei = tritrypdb.sequences("TbruceiTREU927")
+lmexicana = tritrypdb.sequences("LmexicanaMHOMGT2001U1103")
 
 from afkost import Sequence
 esb1 = Sequence(tbrucei.sequences["Tb927.10.3800:mRNA-p1"])
@@ -38,9 +27,11 @@ drbd13.plot(save_path="drbd13.tb")
 
 from afkost import KmerMatrix
 matrix = KmerMatrix()
-matrix_tbrucei = matrix.composition_from_fasta("tbrucei.fasta")
+matrix_tbrucei = matrix.composition_from_fasta(tritrypdb.fasta_path("TbruceiTREU927"))
 gapdh.composition_dissimilarity_stats(matrix_tbrucei)
 gapdh.kmer_outlier_stats(matrix_tbrucei)
+rbp6.composition_dissimilarity_stats(matrix_tbrucei)
+rbp6.kmer_outlier_stats(matrix_tbrucei)
 
 esb1 = Sequence(lmexicana.sequences["LmxM.30.0660.1-p1"])
 esb1.plot(save_path="esb1.lm")

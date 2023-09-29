@@ -10,7 +10,7 @@ class TriTrypDB:
         Named arguments:
         version -- tritrypdb version (default None, which gives latest version)
         """
-        self.cache_path = "_tritrypdb"
+        self.cache_path = "_tritrypdb_cache"
         if not os.path.isdir(self.cache_path):
             os.mkdir(self.cache_path)
         self._version = None
@@ -31,15 +31,12 @@ class TriTrypDB:
         else:
             return str(self._version)
 
-    def fetch_fasta(self, species: str, version: str = None):
+    def fetch_fasta(self, species: str):
         """
         Downloads and saves to disk a protein sequence fasta file for the specified species.
 
         Required arguments:
         species: species/strain name, as found on tritrypdb
-
-        Named arguments:
-        version: tritrypdb version (default latest version)
         """
         if not os.path.isfile(species + ".fasta"):
             # construct url
@@ -61,6 +58,7 @@ class TriTrypDB:
         Required arguments:
         species: species/strain name, as found on tritrypdb
         """
+        self.fetch_fasta(species)
         return os.path.join(self.cache_path, species + "." + self.version +".fasta")
     
     def sequences(self, species: str):
