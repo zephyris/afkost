@@ -1,1 +1,1 @@
-from .uniprot import UniProt
+from .uniprot import *

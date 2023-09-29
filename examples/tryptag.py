@@ -14,9 +14,9 @@ for species in tritrypdb_species:
         with open(species + ".fasta", "w") as fasta_file:
             fasta_file.write(r.text)
 
-from afkost import _Fasta
-tbrucei = _Fasta("tbrucei.fasta")
-lmexicana = _Fasta("lmexicana.fasta")
+from afkost import Fasta
+tbrucei = Fasta("tbrucei.fasta")
+lmexicana = Fasta("lmexicana.fasta")
 
 from afkost import Sequence
 esb1 = Sequence(tbrucei.sequences["Tb927.10.3800:mRNA-p1"])

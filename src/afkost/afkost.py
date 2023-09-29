@@ -134,7 +134,7 @@ class Alphabet:
         """
         return len(self.alphabet)
 
-class _Fasta:
+class Fasta:
     def __init__(self, path):
         """Initialise class containing sequence information from a fasta file path
         
@@ -780,7 +780,7 @@ class KmerMatrix:
         """
         Average composition matrix from all sequences in a fasta file.
         """
-        fasta = _Fasta(path)
+        fasta = Fasta(path)
         return self._composition_from_fasta(fasta)
 
     def composition_from_fastas(self, path_list: list):
@@ -789,7 +789,7 @@ class KmerMatrix:
         """
         average = None
         for path in path_list:
-            fasta = _Fasta(path)
+            fasta = Fasta(path)
             current_average = self._composition_from_fasta(fasta)
             if average is None:
                 average = current_average / len(path_list)
@@ -945,7 +945,7 @@ class Search:
         Required arguments:
         path -- path of the fasta file to load
         """
-        fasta = _Fasta(path)
+        fasta = Fasta(path)
         self.new_database(fasta.sequences)
 
     _string_columnindividual_kmer_cutoff = 3

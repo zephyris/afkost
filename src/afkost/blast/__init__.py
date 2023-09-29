@@ -1,1 +1,1 @@
-from .blast import Blast
+from .blast import *

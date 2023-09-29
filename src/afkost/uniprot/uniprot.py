@@ -133,15 +133,15 @@ class UniProt:
 
     def sequences(self, species: str):
         """
-        Returns sequences for a uniprot species as a _Fasta instance
+        Returns sequences for a uniprot species as a Fasta instance
 
         Required arguments:
         species: species/strain name, as found on uniprot
 
         Returns:
-        `_Fasta` instance containing the sequences for that species
+        `Fasta` instance containing the sequences for that species
         """
-        from afkost import _Fasta
+        from afkost import Fasta
         self.fetch_fasta(species)
-        fasta = _Fasta(os.path.join(self.cache_path, species + "." + self.version +".fasta"))
+        fasta = Fasta(os.path.join(self.cache_path, species + "." + self.version +".fasta"))
         return fasta

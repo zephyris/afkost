@@ -1,1 +1,1 @@
-from .tritrypdb import TriTrypDB
+from .tritrypdb import *
