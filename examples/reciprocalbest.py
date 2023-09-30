@@ -1,7 +1,8 @@
 from afkost import blast
 from afkost import tritrypdb
 
-blast = blast.Blast(search_tool="blast")
+#blast = blast.Blast(search_tool="blast")
+blast = blast.Blast()
 tritrypdb = tritrypdb.TriTrypDB()
 
 ref = "TbruceiTREU927"
@@ -15,5 +16,5 @@ for specie in species:
 ref_seqs = tritrypdb.sequences(ref)
 for specie in species:
     for gene in ref_seqs.sequences:
-        result = blast.recoprocal_search(tritrypdb.fasta_path(ref), tritrypdb.fasta_path(specie), gene, ref_seqs[gene])
+        result = blast.reciprocal_search(tritrypdb.fasta_path(ref), tritrypdb.fasta_path(specie), gene, ref_seqs.sequences[gene])
         print(result)
