@@ -106,13 +106,13 @@ class UniProt:
             try:
                 # download as binary file, gzip compressed
                 r = requests.get(url, stream=True)
-                with open(self.gzip_path(species), "wb") as gzip_file:
+                with open(os.path.join(self.cache_path, species + "." + self.version + ".gzip"), "wb") as gzip_file:
                     for chunk in r.iter_content(chunk_size=1024): 
                         if chunk:
                             gzip_file.write(chunk)
                 # decompress to plain text
-                with gzip.open(self.gzip_path(species), mode="rt") as gzip_file:
-                    with open(self.fasta_path(species), mode="w") as fasta_file:
+                with gzip.open(os.path.join(self.cache_path, species + "." + self.version + ".gzip"), mode="rt") as gzip_file:
+                    with open(os.path.join(self.cache_path, species + "." + self.version + ".fasta"), mode="w") as fasta_file:
                         fasta_file.write(gzip_file.read())
             except requests.exceptions.RequestException as e:
                 raise SystemExit(e)
@@ -124,6 +124,7 @@ class UniProt:
         Required arguments:
         species: Species/strain ID, as listed in uniprot
         """
+        self.fetch_fasta(species)
         return os.path.join(self.cache_path, species + "." + self.version + ".gzip")
 
     def fasta_path(self, species: str):
@@ -133,6 +134,7 @@ class UniProt:
         Required arguments:
         species: Species/strain ID, as listed in uniprot
         """
+        self.fetch_fasta(species)
         return os.path.join(self.cache_path, species + "." + self.version + ".fasta")
 
     def sequences(self, species: str):

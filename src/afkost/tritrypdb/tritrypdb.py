@@ -46,7 +46,7 @@ class TriTrypDB:
                 r = requests.get(url)
                 if r.status_code == 404:
                     raise ValueError("Data not found for species: " + species + ", version: " + self.version + " at tritrypdb.org")
-                with open(self.fasta_path(species), "w") as fasta_file:
+                with open(os.path.join(self.cache_path, species + "." + self.version +".fasta"), "w") as fasta_file:
                     fasta_file.write(r.text)
             except requests.exceptions.RequestException as e:
                 raise SystemExit(e)
