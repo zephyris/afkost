@@ -96,7 +96,7 @@ class UniProt:
         Required arguments:
         species: Species/strain ID, as listed in uniprot
         """
-        if not os.path.isfile(species + ".gzip"):
+        if not os.path.join(self.cache_path, species + "." + self.version + ".gzip"):
             # construct url
             if self._version is None:
                 url = "https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/%s/%s/%s_%s.fasta.gz" % (self.proteome_index[species]["supergenum"].capitalize(), species, species, self.proteome_index[species]["tax_id"])
