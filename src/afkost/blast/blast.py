@@ -110,7 +110,7 @@ class Blast:
         results = [x.split("\t") for x in results]
         return results
 
-    def +(self, origin_fasta_path: str, subject_fasta_path: str, query_name: str = None, query_sequence: str = None, verbose: bool = False):
+    def reciprocal_search(self, origin_fasta_path: str, subject_fasta_path: str, query_name: str = None, query_sequence: str = None, verbose: bool = False):
         """
         Do a reciprocal blast or diamond sequence search. Either `query_name` or `query_sequence` must be met.
         Validity of `query_name` and `query_sequence` are NOT checked, ie. it is trusted that, if set, they exactly match an entry in the fasta file at `origin_fasta_path`.
