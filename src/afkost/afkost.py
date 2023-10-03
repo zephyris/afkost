@@ -259,7 +259,7 @@ class Kmer:
         Add kmer counts and normalised kmer frequencies in self to kmer
         """
         self._type_match_check(kmer)
-        for k in range(1, self.kmer_max_length):
+        for k in range(1, self.kmer_max_length + 1):
             self.kmer_arrays[k] = self.kmer_arrays[k] + kmer.kmer_arrays[k]
             self.kmer_normalised_arrays[k] = self.kmer_normalised_arrays[k] + kmer.kmer_normalised_arrays[k]
         for k in range(3, self.kgap_max_length + 1):
@@ -272,7 +272,7 @@ class Kmer:
         Subtracts kmer counts and normalised kmer frequencies in kmer from self
         """
         self._type_match_check(kmer)
-        for k in range(1, self.kmer_max_length):
+        for k in range(1, self.kmer_max_length + 1):
             self.kmer_arrays[k] = self.kmer_arrays[k] - kmer.kmer_arrays[k]
             self.kmer_normalised_arrays[k] = kmer.kmer_normalised_arrays[k] - self.kmer_normalised_arrays[k]
         for k in range(3, self.kgap_max_length + 1):
@@ -285,7 +285,7 @@ class Kmer:
         Multiply kmer counts and normalised kmer frequencies by a number
         """
         if not isinstance(value, int) and not isinstance(value, float): raise TypeError("`value` must be an `int` or `float`")
-        for k in range(1, self.kmer_max_length):
+        for k in range(1, self.kmer_max_length + 1):
             self.kmer_arrays[k] = self.kmer_arrays[k] * value
             self.kmer_normalised_arrays[k] = self.kmer_normalised_arrays[k] * value
         for k in range(3, self.kgap_max_length + 1):
@@ -298,7 +298,7 @@ class Kmer:
         Divide kmer counts and normalised kmer frequencies by a number
         """
         if not isinstance(value, int) and not isinstance(value, float): raise TypeError("`value` must be an `int` or `float`")
-        for k in range(1, self.kmer_max_length):
+        for k in range(1, self.kmer_max_length + 1):
             self.kmer_arrays[k] = self.kmer_arrays[k] / value
             self.kmer_normalised_arrays[k] = self.kmer_normalised_arrays[k] / value
         for k in range(3, self.kgap_max_length + 1):
@@ -310,7 +310,7 @@ class Kmer:
         """
         Return the absolute value of kmer and kgap array entries
         """
-        for k in range(1, self):
+        for k in range(1, self.kmer_max_length + 1):
             kmer_arrays[k] = numpy.abs(kmer_arrays[k])
             kmer_normalised_arrays[k] = numpy.abs(kmer_normalised_arrays[k])
         for k in range(3, self.kgap_max_length + 1):
