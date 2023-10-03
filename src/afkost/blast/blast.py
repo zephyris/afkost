@@ -69,7 +69,7 @@ class Blast:
         if self.search_tool == "diamond":
             # make the database
             if not os.path.isfile(fasta_path + ".dmnd"):
-                command = ["diamond", "makedb", fasta_path]
+                command = ["diamond", "makedb", fasta_path, "--quiet"]
                 proc = subprocess.Popen(command, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
                 results = proc.communicate()[0].decode("utf-8")
                 #if proc.returncode != 0:
@@ -112,7 +112,7 @@ class Blast:
 
     def reciprocal_search(self, origin_fasta_path: str, subject_fasta_path: str, query_name: str = None, query_sequence: str = None, verbose: bool = False):
         """
-        Do a reciprocal blast or diamond sequence search. Either `query_name` or `query_sequence` must be met.
+        Do a reciprocal best blast or diamond sequence search. Either `query_name` or `query_sequence` must be met.
         Validity of `query_name` and `query_sequence` are NOT checked, ie. it is trusted that, if set, they exactly match an entry in the fasta file at `origin_fasta_path`.
         Providing `query_name` and `query_sequence` is fasta, as it prevents additional lookup from the fasta file at `origin_fasta_path`.
         Using diamond is faster than blast as it returns full subject sequence which can be used in the reciprocal search.
@@ -168,3 +168,94 @@ class Blast:
         else:
             if verbose: print("reciprocal match")
             return [query_name, forward_result[1], forward_result[0], forward_result[1]]
+
+    def reciprocal_genomewide(self, fasta1_path: str, fasta2_path: str):
+        """
+        List all reciprocal best blast or diamond sequence search, pairwise for two entire fasta files.
+
+        Required arguments:
+        fasta1_path -- fasta file to use as the originating database
+        fasta2_path -- fasta file to use as the target database
+
+        Returns a list of reciprocal best blast hits, each entry in the form [query_name, forward_evalue, forward_pident, subject_name, reverse_evalue, reverse_pident]
+        """
+        # TODO: Error handling from failure to run blasts
+        # check install
+        self._check_install()
+        # setup query name, currently unused
+        query_name = None
+        if query_name is None:
+            query_name = "none"
+        # select search program name
+        search_program = {
+            "protein": "blastp",
+            "nucleotide": "blastn"
+        }
+        if self.search_tool == "diamond":
+            # make the databases
+            if not os.path.isfile(fasta1_path + ".dmnd"):
+                command = ["diamond", "makedb", fasta1_path, "--quiet"]
+                proc = subprocess.Popen(command, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+                results = proc.communicate()[0].decode("utf-8")
+            if not os.path.isfile(fasta2_path + ".dmnd"):
+                command = ["diamond", "makedb", fasta2_path, "--quiet"]
+                proc = subprocess.Popen(command, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+                results = proc.communicate()[0].decode("utf-8")
+            # do the searches
+            # forward
+            search_command = ["-d", fasta1_path, "--quiet", "-e", self.minimum_evalue, "-q", fasta2_path, "--outfmt", "6", "qseqid", "sseqid", "evalue", "pident"]
+            command = ["diamond", search_program[self.sequence_type]] + search_command
+            proc = subprocess.Popen(command, stdout = subprocess.PIPE, stdin = subprocess.PIPE)
+            results1 = proc.communicate()[0].decode("utf-8")
+            # reverse
+            search_command = ["-d", fasta2_path, "--quiet", "-e", self.minimum_evalue, "-q", fasta1_path, "--outfmt", "6", "qseqid", "sseqid", "evalue", "pident"]
+            command = ["diamond", search_program[self.sequence_type]] + search_command
+            proc = subprocess.Popen(command, stdout = subprocess.PIPE, stdin = subprocess.PIPE)
+            results2 = proc.communicate()[0].decode("utf-8")
+        if self.search_tool == "blast":
+            # make the databases
+            dbtype = {
+                "protein": "prot",
+                "nucleotide": "nucl"
+            }
+            if not os.path.isfile(fasta1_path + ".phr"):
+                command = ["makeblastdb", "-dbtype", dbtype[self.sequence_type], "-in", fasta1_path]
+                proc = subprocess.Popen(command, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+                results = proc.communicate()[0].decode("utf-8")
+            if not os.path.isfile(fasta2_path + ".phr"):
+                command = ["makeblastdb", "-dbtype", dbtype[self.sequence_type], "-in", fasta2_path]
+                proc = subprocess.Popen(command, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+                results = proc.communicate()[0].decode("utf-8")
+            # do the search
+            # forward
+            search_command = ["-db", fasta1_path, "-evalue", self.minimum_evalue, "-query", fasta2_path, "-outfmt", "6 qseqid sseqid evalue pident"]
+            command = [search_program[self.sequence_type]] + search_command
+            proc = subprocess.Popen(command, stdout = subprocess.PIPE, stdin = subprocess.PIPE)
+            results1 = proc.communicate()[0].decode("utf-8")
+            # reverse
+            search_command = ["-db", fasta2_path, "-evalue", self.minimum_evalue, "-query", fasta1_path, "-outfmt", "6 qseqid sseqid evalue pident"]
+            command = [search_program[self.sequence_type]] + search_command
+            proc = subprocess.Popen(command, stdout = subprocess.PIPE, stdin = subprocess.PIPE)
+            results1 = proc.communicate()[0].decode("utf-8")
+        results1 = [x.split("\t") for x in results1.splitlines()]
+        results2 = [x.split("\t") for x in results2.splitlines()]
+        # make dict of result1 (forward search) best hits, indexed by qseqid
+        results1best = {}
+        for i in range(len(results1)):
+            # hits are in e value order, so earliest line is best hit
+            if results1[i][0] not in results1best:
+                results1best[results1[i][0]] = results1[i]
+        # find reciprocal best hits
+        reciprocalbest = []
+        results2best = {}
+        for i in range(len(results2)):
+            # check for and record best hit
+            if results2[i][0] not in results2best:
+                results2best[results2[i][0]] = results2[i]
+                # if it's a best hit, check if reverse search gave the same pair
+                # if results2 (reverse search) sseqid is in forward search index
+                if results2[i][1] in results1best:
+                    # if reverse search qseqid is the same as the best hit from the forward search
+                    if results1best[results2[i][1]][1] == results2[i][0]:
+                        reciprocalbest.append([results2[i][0], results1best[results2[i][1]][2], results1best[results2[i][1]][3], results2[i][1], results2[i][2], results2[i][3]])
+        return reciprocalbest
