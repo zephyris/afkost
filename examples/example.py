@@ -15,6 +15,7 @@ sequence1 = Sequence(sequence_fus, kmer_max_length=2)
 sequence2 = Sequence(sequence_esb, kmer_max_length=2)
 sequence1.kmer_outlier_stats() # which kmers are dissimilar from uniform abundance distribution?
 sequence2.kmer_outlier_stats()
+difference = sequence1.sequence_difference(sequence2)
 
 from afkost import KmerMatrix
 matrix = KmerMatrix(kmer_max_length=2)

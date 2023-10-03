@@ -366,6 +366,33 @@ class Kmer:
         """
         return self._kgap_array_to_dict(self.kgap_normalised_arrays)
 
+    def kmer_difference(self, query):
+        """
+        Difference between self and query, using kmer frequency normalised to length (kmer_normalised).
+
+        Positional arguments:
+        query -- Kmer instance to which to compare
+
+        Returns:
+        Returns `Kmer` instance with change in kmer proportion (query-self) and change normalised frequence in self ((query-self)/self)
+        """
+        change = self - query
+        for k in range(1, self.kmer_max_length + 1):
+            for i in range(len(change.kmer_arrays)):
+                # change_normalised: if self is non-zero, (query - self) / self
+                if self.kmer_arrays[k][i] == 0:
+                    change.kmer_normalised_arrays[k][i] = 0
+                else:
+                    change.kmer_normalised_arrays[k][i] = change.kmer_arrays[k][i] / self.kmer_arrays[k][i]
+        for k in range(3, self.kgap_max_length + 1):
+            for i in range(len(change.kgap_arrays)):
+                # change_normalised: if self is non-zero, (query - self) / self
+                if self.kgap_arrays[k][i] == 0:
+                    change.kgap_normalised_arrays[k][i] = 0
+                else:
+                    change.kgap_normalised_arrays[k][i] = change.kgap_arrays[k][i] / self.kgap_arrays[k][i]
+        return change
+
     def from_sequence(self, sequence: str):
         """
         Determines kmers from a sequence, populating self.kmer_arrays, self.kmer_normalised_arrays, self.kgap_arrays and self.kgap_normalised_arrays
@@ -681,31 +708,28 @@ class Sequence:
     
     def kmer_difference(self, query):
         """
-        Difference between self and query, using kmer frequency normalised to length (kmer_normalised).
+        Difference between self.kmers_instance and query, using kmer frequency normalised to length (kmer_normalised).
 
         Positional arguments:
-        query -- Kmer object to which to compare
+        query -- Kmer instance to which to compare
 
         Returns:
         Returns `Kmer` instance with change in kmer proportion (query-self) and change normalised frequence in self ((query-self)/self)
         """
-        change = self.kmers_instance - query
-        for k in range(1, self.kmer_max_length + 1):
-            for i in range(len(change.kmer_arrays)):
-                # change_normalised: if self is non-zero, (query - self) / self
-                if self.kmers_instance.kmer_arrays[k][i] == 0:
-                    change.kmer_normalised_arrays[k][i] = 0
-                else:
-                    change.kmer_normalised_arrays[k][i] = change.kmer_arrays[k][i] / self.kmers_instance.kmer_arrays[k][i]
-        for k in range(3, self.kgap_max_length + 1):
-            for i in range(len(change.kgap_arrays)):
-                # change_normalised: if self is non-zero, (query - self) / self
-                if self.kmers_instance.kgap_arrays[k][i] == 0:
-                    change.kgap_normalised_arrays[k][i] = 0
-                else:
-                    change.kgap_normalised_arrays[k][i] = change.kgap_arrays[k][i] / self.kmers_instance.kgap_arrays[k][i]
-        return change
-    
+        return self.kmers_instance.kmer_difference(query)
+
+    def sequence_difference(self, query):
+        """
+        Difference between self.kmers_instance and query.kmers_instance.
+        
+        Positional arguments:
+        query -- Sequence instance to which to compare
+
+        Returns:
+        Returns `Kmer` instance with change in kmer proportion (query-self) and change normalised frequence in self ((query-self)/self)
+        """
+        return self.kmers_instance.kmer_difference(query.kmers_instance)
+
     def plot(self, save_path: str = None, show_plot: bool = False):
         """
         Plot frequency of kmers and kgaps of different lengths in the sequence
