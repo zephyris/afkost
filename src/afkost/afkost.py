@@ -28,7 +28,8 @@ class Alphabet:
             "protein": { # 20 amino acids
                 "alphabet": "ARNDCQEGHILKMFPSTWYV",
                 "alphabet_replace": {"U": "C", "O": "K"},
-                "alphabet_any": "X"
+                "alphabet_any": "X",
+                "typical_length": 1000
             }, "protein_reduced": { # simplified to 10 amino acid classes
                 "alphabet": "ARDCGHFPS",
                 "alphabet_replace": {
@@ -38,7 +39,8 @@ class Alphabet:
                     "V": "A", "I": "A", "L": "A", "M": "A", # AVILM -> A, small hydrophobic
                     "Y": "F", "W": "F" # FYW -> F, hydrophobic aromatic
                 },
-                "alphabet_any": "X"
+                "alphabet_any": "X",
+                "typical_length": 1000
             }, "protein_reduced2": { # simplified to 6 amino acid classes
                 "alphabet": "ARDGFPS",
                 "alphabet_replace": {
@@ -48,7 +50,8 @@ class Alphabet:
                     "V": "A", "I": "A", "L": "A", "M": "A", "C": "A", # AVILMC -> A, small hydrophobic
                     "Y": "F", "W": "F" # FYW -> F, hydrophobic aromatic
                 },
-                "alphabet_any": "X"
+                "alphabet_any": "X",
+                "typical_length": 1000
             }, "protein_reduced3": { # simplified to 4 amino acid classes
                 "alphabet": "ARDS",
                 "alphabet_replace": {
@@ -57,15 +60,18 @@ class Alphabet:
                     "T": "S", "N": "S", "Q": "S", "G": "S", # STNQG -> S, hydrophilic
                     "V": "A", "I": "A", "L": "A", "M": "A", "C": "A", "F": "A", "Y": "A", "W": "A", "P": "A" # AVILMCFYWP -> A, hydrophobic
                 },
-                "alphabet_any": "X"
+                "alphabet_any": "X",
+                "typical_length": 1000
             }, "dna": {
                 "alphabet": "ATCG",
                 "alphabet_replace": {},
-                "alphabet_any": "N"
+                "alphabet_any": "N",
+                "typical_length": 3000
             }, "rna": {
                 "alphabet": "AUCG".upper(),
                 "alphabet_replace": {},
-                "alphabet_any": "N"
+                "alphabet_any": "N",
+                "typical_length": 3000
             }
         }
         if self.sequence_type not in self.alphabets:
@@ -73,6 +79,7 @@ class Alphabet:
         self.alphabet_any = self.alphabets[self.sequence_type]["alphabet_any"]
         self.alphabet = self.alphabets[self.sequence_type]["alphabet"] + self.alphabet_any
         self.alphabet_replace = self.alphabets[self.sequence_type]["alphabet_replace"]
+        self.typical_length = self.alphabets[self.sequence_type]["typical_length"]
 
     def __repr__(self):
         """
@@ -116,6 +123,27 @@ class Alphabet:
         Count of the number of possible kmers
         """
         return self.alphabet_length ** k
+        
+    def default_k(self, typical_length: int = None):
+        """
+        Automatic selection of `kmer_max_length` and `kgap_max_length` based on sequence typical length and alphabet complexity.
+
+        Named arguments:
+        typical_length -- typical sequence length for this dataset, default 1000 for protein, 3000 for nucleotide
+
+        Returns tuple of default kmer and kgap max lengths.
+        """
+        if typical_length is None:
+            typical_length = self.typical_length
+        kmer_max_length = 0
+        while typical_length > self.num_kmers(kmer_max_length):
+            # increase kmer_max_length until number of possible kmers just exceeds typical sequence length
+            # for 20 aas, typical protein length 1000aas, kmer_max_length = 3
+            # for simplified to 10aa classes, typical protein length 1000aas, 
+            # for 4 bases, typical transcript length 3000bps, kmer_Max_lenght = 6
+            kmer_max_length += 1
+        kgap_max_length = kmer_max_length * 2
+        return kmer_max_length, kgap_max_length
 
     @cached_property
     def alphabet_lookup(self):
@@ -410,6 +438,7 @@ class Kmer:
         # for each position in sequence
         for i in range(len(self.sequence) - 1):
             # for each kmer length
+            # A, AA, AAA, etc.
             for k in range(1, self.kmer_max_length + 1):
                 # if kmer is fully within the sequence length
                 if i + k < len(self.sequence):
@@ -422,6 +451,7 @@ class Kmer:
                     # record simple count
                     self.kmer_arrays[k][array_index] += 1
             # for each kgap length
+            # AXA, AXXA, AXXXA, etc.
             for k in range(3, self.kgap_max_length + 1):
                 # if kgap is fully within the sequence length
                 if i + k < len(self.sequence):
@@ -441,7 +471,7 @@ class Kmer:
             self.kgap_normalised_arrays[k] = self.kgap_arrays[k] / (len(sequence) - k)
 
 class Sequence:
-    def __init__(self, sequence: str, kmer_max_length: int = 3, kgap_max_length: int = 5, sequence_type: str = "protein", entropy_threshold: float = None, entropy_window: int = None):
+    def __init__(self, sequence: str, kmer_max_length: int = None, kgap_max_length: int = None, sequence_type: str = "protein", entropy_threshold: float = None, entropy_window: int = None):
         """
         Initialise class containing compositional information for kmers of different lengths
         
@@ -454,8 +484,6 @@ class Sequence:
         """
 
         # record settings
-        self.kmer_max_length = kmer_max_length
-        self.kgap_max_length = kgap_max_length
         self.entropy_threshold = entropy_threshold
         self.entropy_window = entropy_window
 
@@ -469,6 +497,14 @@ class Sequence:
         # setup alphabet
         self.sequence_type = "".join(sequence_type.lower().split())
         self.alphabet = Alphabet(self.sequence_type)
+
+        # setup kmer and kgap max lengths
+        if kmer_max_length is None or kgap_max_length is None:
+            default_kmer_max_length, default_kgap_max_length = self.alphabet.default_k()
+            if kmer_max_length is None: kmer_max_length = default_kmer_max_length
+            if kgap_max_length is None: kgap_max_length = default_kgap_max_length
+        self.kmer_max_length = kmer_max_length
+        self.kgap_max_length = kgap_max_length
         
         # check and tidy sequence input
         self.sequence = ""
