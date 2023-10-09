@@ -26,12 +26,12 @@ class Alphabet:
         self.sequence_type = "".join(sequence_type.lower().split())
         self.alphabets = {
             "protein": { # 20 amino acids
-                "alphabet": "ARNDCQEGHILKMFPSTWYV",
+                "alphabet": "RKHDESTNQAVILMFYWCGP",
                 "alphabet_replace": {"U": "C", "O": "K"},
                 "alphabet_any": "X",
                 "typical_length": 1000
-            }, "protein_reduced": { # simplified to 10 amino acid classes
-                "alphabet": "ARDCGHFPS",
+            }, "protein_reduced": { # simplified to 9 amino acid classes
+                "alphabet": "RHDSAFCGP",
                 "alphabet_replace": {
                     "K": "R", # KR -> R, basic, pKa ~11
                     "E": "D", # DE -> D, acidic pKa ~4
@@ -41,8 +41,8 @@ class Alphabet:
                 },
                 "alphabet_any": "X",
                 "typical_length": 1000
-            }, "protein_reduced2": { # simplified to 6 amino acid classes
-                "alphabet": "ARDGFPS",
+            }, "protein_reduced2": { # simplified to 7 amino acid classes
+                "alphabet": "RDSAFGP",
                 "alphabet_replace": {
                     "K": "R", "H": "R", # KRH -> R, basic
                     "E": "D", # DE -> D, acidic
@@ -53,7 +53,7 @@ class Alphabet:
                 "alphabet_any": "X",
                 "typical_length": 1000
             }, "protein_reduced3": { # simplified to 4 amino acid classes
-                "alphabet": "ARDS",
+                "alphabet": "RDSA",
                 "alphabet_replace": {
                     "K": "R", "H": "R", # KRH -> R, basic
                     "E": "D", # DE -> D, acidic
