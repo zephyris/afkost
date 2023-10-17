@@ -339,11 +339,11 @@ class Kmer:
         Return the absolute value of kmer and kgap array entries
         """
         for k in range(1, self.kmer_max_length + 1):
-            kmer_arrays[k] = numpy.abs(kmer_arrays[k])
-            kmer_normalised_arrays[k] = numpy.abs(kmer_normalised_arrays[k])
+            self.kmer_arrays[k] = numpy.abs(self.kmer_arrays[k])
+            self.kmer_normalised_arrays[k] = numpy.abs(self.kmer_normalised_arrays[k])
         for k in range(3, self.kgap_max_length + 1):
-            kgap_arrays[k] = numpy.abs(kgap_arrays[k])
-            kgap_normalised_arrays[k] = numpy.abs(kgap_normalised_arrays[k])
+            self.kgap_arrays[k] = numpy.abs(self.kgap_arrays[k])
+            self.kgap_normalised_arrays[k] = numpy.abs(self.kgap_normalised_arrays[k])
         return self
 
     def _kmer_array_to_dict(self, kmer_arrays):
@@ -1032,7 +1032,7 @@ class Search:
         for k in range(3, self.kgap_max_length + 1):
             all_kmers = self.alphabet.all_kmers(2)
             for i in range(self.alphabet.num_kmers(2)):
-                string += str(kgaps[k][all_kmers[i]]) + "\t"
+                string += str(self.kgaps[k][all_kmers[i]]) + "\t"
         for k in range(1, self.kmer_max_length + 1):
             all_kmers = self.alphabet.all_kmers(k)
             for i in range(self.alphabet.num_kmers(k)):
