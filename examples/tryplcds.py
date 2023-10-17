@@ -1,9 +1,10 @@
 from tryptag import TrypTag
-from afkost import Sequence, tritrypdb
+from afkost import Sequence
+from afkost.databases import TriTrypDB
 import numpy
 
 tryptag = TrypTag(verbose=False)
-tritrypdb = tritrypdb.TriTrypDB()
+tritrypdb = TriTrypDB()
 fasta = tritrypdb.sequences("TbruceiTREU927")
 
 localisations = ["glycosome", "cortical cytoskeleton", "nucleoplasm", "nucleolus", "axoneme", "paraflagellar rod", "mitochondrion", "endoplasmic reticulum"]

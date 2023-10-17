@@ -71,11 +71,12 @@ By default, it assumes a naive random sequence where all kmers for each kmer len
 Of course, protein (and DNA/RNA) sequences aren't naive random sequences, and have preferred amino acid/bases and local sequence structure.
 Average kmer composition can be loaded from a fasta file, which can use built-in sequence retrieval tools.
 ```python
-from afkost import KmerMatrix, TriTrypDB
+from afkost import KmerMatrix
+from afkost.databases import TriTrypDB
 tritrypdb = TriTrypDB()
 tritrypdb.fetch_fasta("TbruceiTREU927")
 matrix = KmerMarix()
-matrix = matrix.composition_from_fasta("_tritrypdb/TbruceiTREU927")
+matrix = matrix.composition_from_fasta(tritrypdb.fasta_path("TbruceiTREU927"))
 ```
 
 Protein composition can then be compared to this matrix:

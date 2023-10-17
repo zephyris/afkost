@@ -1,9 +1,9 @@
 import requests
 import os
-from afkost import tritrypdb
+from afkost.databases import TriTrypDB
 
 from afkost import Fasta
-tritrypdb = tritrypdb.TriTrypDB()
+tritrypdb = TriTrypDB()
 tbrucei = tritrypdb.sequences("TbruceiTREU927")
 lmexicana = tritrypdb.sequences("LmexicanaMHOMGT2001U1103")
 

@@ -1,9 +1,9 @@
 from afkost import blast
-from afkost import tritrypdb
+from afkost.databases import TriTrypDB
 
 #blast = blast.Blast(search_tool="blast")
 blast = blast.Blast()
-tritrypdb = tritrypdb.TriTrypDB()
+tritrypdb = TriTrypDB()
 
 ref = "TbruceiTREU927"
 species = [
