@@ -213,7 +213,7 @@ class TriTrypDB:
         Required arguments:
         species: species/strain name, as found on tritrypdb
         """
-        if not os.path.join(self.cache_path, species + "." + self.version +".fasta"):
+        if not os.path.isfile(os.path.join(self.cache_path, species + "." + self.version +".fasta")):
             # construct url
             url = "https://tritrypdb.org/common/downloads/release-" + self.version + "/" + species + "/fasta/data/TriTrypDB-" + self.version + "_" + species + "_AnnotatedProteins.fasta"
             # download and save

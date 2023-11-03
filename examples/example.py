@@ -19,7 +19,7 @@ difference = sequence1.sequence_difference(sequence2)
 
 from afkost import KmerMatrix
 matrix = KmerMatrix(kmer_max_length=2)
-from afkost import TriTrypDB
+from afkost.databases import TriTrypDB
 tritrypdb = TriTrypDB(version="65")
 tritrypdb.fetch_fasta("TbruceiTREU927")
 matrix1 = matrix.composition_from_fasta("_tritrypdb/TbruceiTREU927.65.fasta")
