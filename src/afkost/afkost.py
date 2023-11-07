@@ -139,7 +139,7 @@ class Alphabet:
         while typical_length > self.num_kmers(kmer_max_length):
             # increase kmer_max_length until number of possible kmers just exceeds typical sequence length
             # for 20 aas, typical protein length 1000aas, kmer_max_length = 3
-            # for simplified to 10aa classes, typical protein length 1000aas, 
+            # for simplified to 10aa classes, typical protein length 1000aas, kmer_max_length = TODO
             # for 4 bases, typical transcript length 3000bps, kmer_Max_lenght = 6
             kmer_max_length += 1
         kgap_max_length = kmer_max_length * 2
@@ -638,7 +638,7 @@ class Sequence:
         # TODO: Handle zeroes in the matrix - any zeroes in the matrix break Chi squared
         # if not set, default to a unity composition matrix (ie. comparison to uniform kmer distribution)
         if matrix is None:
-            matrix_instance = KmerMatrix(sequence_type = self.sequence_type, kmer_max_length = self.kmer_max_length)
+            matrix_instance = KmerMatrix(sequence_type = self.sequence_type, kmer_max_length = self.kmer_max_length, kgap_max_length = self.kgap_max_length)
             matrix = matrix_instance.composition_unity
         # check if the kmers match type
         self.kmers_instance._type_match_check(matrix)
