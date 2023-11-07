@@ -27,8 +27,9 @@ Initialise a `Sequence` instance with the sequence, sequence type, and entropy f
 sequence = Sequence("MDRGGRGGGSGGGRGSGAGGRGRGGAKMLARIAVISERY", kmer_max_length=2)
 print(sequence)
 ```
-By default, `Sequence` assumes a protein sequence. This can be set using `sequence_type` to `"protein"`, `"dna"` or `"rna"`. DNA and RNA are largely untested.
-By default, kmers up to length `3` are analysed. This can be set using `kmer_max_length`.
+By default, `Sequence` assumes a protein sequence. This can be set using `sequence_type` to `"protein"`, `"dna"` or `"rna"`, or three reduced complexity protein alphabets: `protein_reduced1`, `protein_reduced2` and `protein_reduced3`. DNA and RNA are largely untested.
+
+Length of kmers to analyse are selected based on the number of possible amino acids/bases in the `sequence_type`, by default up to `3` for proteins. This can be set using `kmer_max_length`. Similarly maximum kgap length can be set with `kgap_max_length`.
 Shannon entropy is calculated with a rolling window and the sequence may be trimmed to only residues above this threshold. By default, no thresholding is used as it removes some local sequence structure information. `entropy_threshold` and `entropy_window` can be set.
 
 ### Kmer-based sequence composition
@@ -75,7 +76,7 @@ from afkost import KmerMatrix
 from afkost.databases import TriTrypDB
 tritrypdb = TriTrypDB()
 tritrypdb.fetch_fasta("TbruceiTREU927")
-matrix = KmerMarix()
+matrix = KmerMatrix()
 matrix = matrix.composition_from_fasta(tritrypdb.fasta_path("TbruceiTREU927"))
 ```
 
